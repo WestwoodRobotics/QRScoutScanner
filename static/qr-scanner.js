@@ -1,3 +1,5 @@
+import jsQR from "jsqr";
+
 const qrScanner = {
     scannedQRCodes: [],
     init: function() {
@@ -14,6 +16,7 @@ const qrScanner = {
         this.$qrList = document.getElementById('qr-list');
         this.$uploadQRButton = document.getElementById('upload-qr');
         this.$closeButton = document.querySelector('.close');
+        this.$qrVideo = document.getElementById('qr-video');
     },
     bindEvents: function() {
         this.$startScanButton.addEventListener('click', this.startScanning.bind(this));
@@ -35,14 +38,39 @@ const qrScanner = {
         this.$qrCount.textContent = this.scannedQRCodes.length;
     },
     startScanning: function() {
-        // Implement QR code scanning functionality here
-        // For now, we'll simulate scanning a QR code
-        const qrData = prompt('Enter QR code data:');
-        if (qrData) {
-            this.scannedQRCodes.push({ data: qrData, uploaded: false });
-            this.saveScannedQRCodes();
-            this.updateQRCount();
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
+            this.$qrVideo.srcObject = stream;
+            this.$qrVideo.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
+            this.$qrVideo.play();
+            requestAnimationFrame(this.tick.bind(this));
+        });
+    },
+    tick: function() {
+        if (this.$qrVideo.readyState === this.$qrVideo.HAVE_ENOUGH_DATA) {
+            const canvas = document.createElement("canvas");
+            canvas.width = this.$qrVideo.videoWidth;
+            canvas.height = this.$qrVideo.videoHeight;
+            const context = canvas.getContext("2d");
+            context.drawImage(this.$qrVideo, 0, 0, canvas.width, canvas.height);
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "dontInvert",
+            });
+            if (code) {
+                this.scannedQRCodes.push({ data: code.data, uploaded: false });
+                this.saveScannedQRCodes();
+                this.updateQRCount();
+                this.stopScanning();
+                return;
+            }
         }
+        requestAnimationFrame(this.tick.bind(this));
+    },
+    stopScanning: function() {
+        const stream = this.$qrVideo.srcObject;
+        const tracks = stream.getTracks();
+        tracks.forEach(track => track.stop());
+        this.$qrVideo.srcObject = null;
     },
     showModal: function() {
         this.updateQRList();

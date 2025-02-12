@@ -8,23 +8,12 @@
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
 </head>
 <body>
-    <div class="App">
-        <header class="App-header">
-            <img src="{{ url_for('static', filename='Octocat.png') }}" class="App-logo" alt="logo" />
-            <p>
-                GitHub Codespaces <span class="heart">♥️</span> Flask
-            </p>
-            <p class="small">
-                Edit <code>templates/index.html</code> and refresh to see your changes!
-            </p>
-        </header>
-    </div>
-
     <div id="qr-scanner">
         <h2>QR Code Scanner</h2>
         <button id="start-scan">Start Scanning</button>
         <p>Scanned QR Codes: <span id="qr-count">0</span></p>
         <button id="show-modal">Show Scanned QR Codes</button>
+        <video id="qr-video" style="display: none;"></video>
     </div>
 
     <div id="qr-modal" class="modal">
