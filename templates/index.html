@@ -1,7 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+</head>
 <body>
     <div class="App">
         <header class="App-header">
@@ -14,6 +19,33 @@
             </p>
         </header>
     </div>
-</body>
 
+    <div id="qr-scanner">
+        <h2>QR Code Scanner</h2>
+        <button id="start-scan">Start Scanning</button>
+        <p>Scanned QR Codes: <span id="qr-count">0</span></p>
+        <button id="show-modal">Show Scanned QR Codes</button>
+    </div>
+
+    <div id="qr-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Scanned QR Codes</h2>
+            <ul id="qr-list"></ul>
+            <button id="upload-qr">Upload Unuploaded QR Codes</button>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='qr-scanner.js') }}"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('{{ url_for('static', filename='service-worker.js') }}')
+                .then(function(registration) {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                }).catch(function(error) {
+                    console.log('Service Worker registration failed:', error);
+                });
+        }
+    </script>
+</body>
 </html>

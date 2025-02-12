@@ -43,3 +43,84 @@ code {
 .small {
     font-size: 0.75rem;
 }
+
+/* Styles for the QR code scanning section */
+#qr-scanner {
+    text-align: center;
+    margin: 20px;
+}
+
+#start-scan {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#qr-count {
+    font-weight: bold;
+}
+
+/* Styles for the modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Styles for the upload button */
+#upload-qr {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+#upload-qr:hover {
+    background-color: #45a049;
+}
+
+/* Styles for the close button */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
