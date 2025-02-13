@@ -2,7 +2,7 @@
   "name": "QR Code Scanner",
   "short_name": "QRScanner",
   "description": "A PWA for scanning and managing QR codes",
-  "start_url": "/",
+  "start_url": "/static/index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4CAF50",
