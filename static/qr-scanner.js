@@ -1,5 +1,3 @@
-import jsQR from "jsqr";
-
 const qrScanner = {
     scannedQRCodes: [],
     init: function() {
@@ -53,18 +51,24 @@ const qrScanner = {
             const context = canvas.getContext("2d");
             context.drawImage(this.$qrVideo, 0, 0, canvas.width, canvas.height);
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "dontInvert",
+            import('jsqr').then(jsQR => {
+                const code = jsQR.default(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+                if (code) {
+                    this.scannedQRCodes.push({ data: code.data, uploaded: false });
+                    this.saveScannedQRCodes();
+                    this.updateQRCount();
+                    this.stopScanning();
+                    return;
+                }
+                requestAnimationFrame(this.tick.bind(this));
+            }).catch(error => {
+                console.error('Error importing jsQR:', error);
             });
-            if (code) {
-                this.scannedQRCodes.push({ data: code.data, uploaded: false });
-                this.saveScannedQRCodes();
-                this.updateQRCount();
-                this.stopScanning();
-                return;
-            }
+        } else {
+            requestAnimationFrame(this.tick.bind(this));
         }
-        requestAnimationFrame(this.tick.bind(this));
     },
     stopScanning: function() {
         const stream = this.$qrVideo.srcObject;
