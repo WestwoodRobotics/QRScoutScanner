@@ -15,6 +15,7 @@ const qrScanner = {
         this.$uploadQRButton = document.getElementById('upload-qr');
         this.$closeButton = document.querySelector('.close');
         this.$qrVideo = document.getElementById('qr-video');
+        this.$stopScanButton = document.getElementById('stop-scan');
     },
     bindEvents: function() {
         this.$startScanButton.addEventListener('click', this.startScanning.bind(this));
@@ -22,6 +23,7 @@ const qrScanner = {
         this.$uploadQRButton.addEventListener('click', this.uploadUnuploadedQRCodes.bind(this));
         this.$closeButton.addEventListener('click', this.closeModal.bind(this));
         window.addEventListener('click', this.outsideClick.bind(this));
+        this.$stopScanButton.addEventListener('click', this.stopScanning.bind(this));
     },
     loadScannedQRCodes: function() {
         const storedQRCodes = localStorage.getItem('scannedQRCodes');
@@ -40,6 +42,7 @@ const qrScanner = {
             this.$qrVideo.srcObject = stream;
             this.$qrVideo.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
             this.$qrVideo.play();
+            this.$startScanButton.disabled = true;
             requestAnimationFrame(this.tick.bind(this));
         });
     },
@@ -53,9 +56,11 @@ const qrScanner = {
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
             import('jsqr').then(jsQR => {
                 const code = jsQR.default(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "dontInvert",
+                    inversionAttempts: "attemptBoth",
                 });
                 if (code) {
+                    document.getElementById('qr-detected').style.display = 'block';
+                    this.$startScanButton.disabled = false;
                     this.scannedQRCodes.push({ data: code.data, uploaded: false });
                     this.saveScannedQRCodes();
                     this.updateQRCount();
@@ -75,6 +80,7 @@ const qrScanner = {
         const tracks = stream.getTracks();
         tracks.forEach(track => track.stop());
         this.$qrVideo.srcObject = null;
+        this.$startScanButton.disabled = false;
     },
     showModal: function() {
         this.updateQRList();

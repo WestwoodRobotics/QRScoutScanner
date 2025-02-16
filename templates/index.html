@@ -11,9 +11,11 @@
     <div id="qr-scanner">
         <h2>QR Code Scanner</h2>
         <button id="start-scan">Start Scanning</button>
+        <button id="stop-scan">Stop Scanning</button>
         <p>Scanned QR Codes: <span id="qr-count">0</span></p>
         <button id="show-modal">Show Scanned QR Codes</button>
-        <video id="qr-video" style="display: none;"></video>
+        <video id="qr-video"></video>
+        <p id="qr-detected" style="display: none;">QR Code detected! Press "Start Scanning" again to scan another code.</p>
     </div>
 
     <div id="qr-modal" class="modal">
