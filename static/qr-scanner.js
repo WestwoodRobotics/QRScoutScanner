@@ -1,3 +1,5 @@
+import jsQR from 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+
 const qrScanner = {
     scannedQRCodes: [],
     init: function() {
@@ -54,23 +56,19 @@ const qrScanner = {
             const context = canvas.getContext("2d");
             context.drawImage(this.$qrVideo, 0, 0, canvas.width, canvas.height);
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-            import('jsqr').then(jsQR => {
-                const code = jsQR.default(imageData.data, imageData.width, imageData.height, {
-                    inversionAttempts: "attemptBoth",
-                });
-                if (code) {
-                    document.getElementById('qr-detected').style.display = 'block';
-                    this.$startScanButton.disabled = false;
-                    this.scannedQRCodes.push({ data: code.data, uploaded: false });
-                    this.saveScannedQRCodes();
-                    this.updateQRCount();
-                    this.stopScanning();
-                    return;
-                }
-                requestAnimationFrame(this.tick.bind(this));
-            }).catch(error => {
-                console.error('Error importing jsQR:', error);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "attemptBoth",
             });
+            if (code) {
+                document.getElementById('qr-detected').style.display = 'block';
+                this.$startScanButton.disabled = false;
+                this.scannedQRCodes.push({ data: code.data, uploaded: false });
+                this.saveScannedQRCodes();
+                this.updateQRCount();
+                this.stopScanning();
+                return;
+            }
+            requestAnimationFrame(this.tick.bind(this));
         } else {
             requestAnimationFrame(this.tick.bind(this));
         }
