@@ -1,5 +1,4 @@
-import jsQR from 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
-
+import jsQR from 'https://esm.sh/jsqr@1.4.0';
 const qrScanner = {
     scannedQRCodes: [],
     init: function() {
@@ -40,13 +39,18 @@ const qrScanner = {
         this.$qrCount.textContent = this.scannedQRCodes.length;
     },
     startScanning: function() {
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(stream => {
-            this.$qrVideo.srcObject = stream;
-            this.$qrVideo.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
-            this.$qrVideo.play();
-            this.$startScanButton.disabled = true;
-            requestAnimationFrame(this.tick.bind(this));
-        });
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(stream => {
+                this.$qrVideo.srcObject = stream;
+                this.$qrVideo.setAttribute("playsinline", true); // prevents iOS from going fullscreen
+                this.$qrVideo.play();
+                this.$startScanButton.disabled = true;
+                requestAnimationFrame(this.tick.bind(this));
+            })
+            .catch(error => {
+                console.error("Error accessing camera:", error);
+                alert("Unable to access camera. Please check your permissions and try again.");
+            });
     },
     tick: function() {
         if (this.$qrVideo.readyState === this.$qrVideo.HAVE_ENOUGH_DATA) {
@@ -57,7 +61,7 @@ const qrScanner = {
             context.drawImage(this.$qrVideo, 0, 0, canvas.width, canvas.height);
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
             const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "attemptBoth",
+                inversionAttempts: "attemptBoth"
             });
             if (code) {
                 document.getElementById('qr-detected').style.display = 'block';
