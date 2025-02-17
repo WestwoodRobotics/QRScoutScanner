@@ -28,3 +28,12 @@ def upload_qr():
         f.write(qr_data + "\n")
 
     return jsonify({"success": True, "message": "QR data uploaded successfully"}), 200
+
+@app.route("/records")
+def show_records():
+    entries_file = "entries.txt"
+    records = []
+    if os.path.exists(entries_file):
+        with open(entries_file, "r") as f:
+            records = [line.strip() for line in f if line.strip()]
+    return render_template("records.html", title="Records", records=records)

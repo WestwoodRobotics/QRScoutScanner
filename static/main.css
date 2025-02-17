@@ -1,10 +1,10 @@
 body {
+    background-color: #333; /* was #f4f7f9 */
+    color: #f4f7f9;         /* was #333 */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-        "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-        sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    padding: 0;
 }
 
 code {
@@ -46,8 +46,11 @@ code {
 
 /* Styles for the QR code scanning section */
 #qr-scanner {
+    background-color: #444; /* darker background */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
     text-align: center;
-    margin: 20px;
 }
 
 #start-scan {
@@ -64,28 +67,41 @@ code {
 .modal {
     display: none;
     position: fixed;
-    z-index: 1;
+    z-index: 100;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
 }
 
 .modal-content {
-    background-color: #fefefe;
-    margin: 15% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
+    background-color: #000; /* black */
+    color: #f4f7f9;         /* white text */
+    margin: auto;
+    padding: 30px;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
+    animation: slideDown 0.3s ease-out;
 }
 
 .close {
-    color: #aaa;
-    float: right;
+    position: absolute;
+    right: 15px;
+    top: 10px;
     font-size: 28px;
-    font-weight: bold;
+    cursor: pointer;
+    color: #aaa;
+    transition: color 0.2s;
+}
+.close:hover {
+    color: #333;
 }
 
 .close:hover,
@@ -100,27 +116,100 @@ code {
     padding: 10px 20px;
     font-size: 16px;
     cursor: pointer;
-    background-color: #4CAF50;
+    background-color: #CC5500;
     color: white;
     border: none;
     border-radius: 5px;
 }
 
 #upload-qr:hover {
-    background-color: #45a049;
+    background-color: #A34400;
 }
 
-/* Styles for the close button */
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
+/* New container & layout styles */
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
-.close:hover,
-.close:focus {
-    color: black;
-    text-decoration: none;
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    color: #FFC107; /* updated dark mode header color */
+}
+
+header p {
+    color: #ddd; /* updated dark mode text */
+}
+
+.button-group {
+    margin-bottom: 15px;
+}
+
+/* Updated default button style */
+button {
+    padding: 10px 20px;
+    font-size: 16px;
     cursor: pointer;
+    background-color: #b0b0b0; /* lighter gray, no gradient */
+    border: none;
+    border-radius: 5px;
+    color: #000; /* black text for contrast */
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+    margin: 5px;
+}
+button:hover {
+    background-color: #a0a0a0; /* a slightly darker shade on hover */
+}
+
+/* Updated modal button style */
+.modal-content button {
+    background-color: #b0b0b0;
+    color: #000;
+}
+.modal-content button:hover {
+    background-color: #a0a0a0;
+    color: #000;
+}
+
+/* Video styling */
+#qr-video {
+    width: 100%;
+    max-height: 400px;
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* List styling within modal */
+#qr-list {
+    list-style: none;
+    padding: 0;
+}
+
+#qr-list li {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Responsive tweaks */
+@media (max-width: 600px) {
+    header h1 {
+        font-size: 2rem;
+    }
+    button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
 }

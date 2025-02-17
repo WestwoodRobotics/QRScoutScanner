@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>QR Code Scanner Records</h1>
+            <p>Below is a list of all uploaded QR codes.</p>
+        </header>
+        <main>
+            {% if records|length == 0 %}
+                <p style="text-align:center;">No records found.</p>
+            {% else %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>QR Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ record }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>
