@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="/static/main.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+        }
+        .nav-container {
+            margin: 10px 0;
+            text-align: right;
+        }
+        .nav-button {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse;
+            font-size: 14px;
+            margin: 20px 0;
+            min-width: 800px;
+        }
+        th, td { 
+            border: 1px solid #555; 
+            padding: 8px; 
+            text-align: center; 
+        }
+        th { 
+            background-color: #333;
+            font-weight: 600;
+            color: #fff;
+        }
+        th[colspan] {
+            background-color: #444;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #1e1e1e;
+        }
+        tbody tr:hover {
+            background-color: #2a2a2a;
+        }
+        @media (max-width: 600px) {
+            table {
+                font-size: 12px;
+            }
+            th, td {
+                padding: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Team List</h1>
+    <div class="nav-container">
+        <a href="/records" class="nav-button">Records</a>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <!-- Table header: adjust based on computed keys -->
+                    <th>Team Number</th>
+                    <th>Entry Count</th>
+                    <th>No Show (%)</th>
+                    <th>Moved (%)</th>
+                    <th>Dislodged Auto (%)</th>
+                    <th>Dislodged Teleop (%)</th>
+                    <th>Defense/Cross (%)</th>
+                    <th>Tipped/Fell (%)</th>
+                    <th>Died (%)</th>
+                    <th>Defended (%)</th>
+                    <th>Timer (avg)</th>
+                    <th>L1 Coral Auto (avg)</th>
+                    <th>L2 Coral Auto (avg)</th>
+                    <th>L3 Coral Auto (avg)</th>
+                    <th>L4 Coral Auto (avg)</th>
+                    <th>Barge Algae Auto (avg)</th>
+                    <th>Processor Algae Auto (avg)</th>
+                    <th>Auto Fouls (avg)</th>
+                    <th>L1 Coral Teleop (avg)</th>
+                    <th>L2 Coral Teleop (avg)</th>
+                    <th>L3 Coral Teleop (avg)</th>
+                    <th>L4 Coral Teleop (avg)</th>
+                    <th>Barge Algae Teleop (avg)</th>
+                    <th>Processor Algae Teleop (avg)</th>
+                    <th>Cage Touches (avg)</th>
+                    <th>Offense Rating (avg)</th>
+                    <th>Defense Rating (avg)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for team in teams %}
+                <tr>
+                    <td>{{ team['Team Number'] }}</td>
+                    <td>{{ team['Entry Count'] }}</td>
+                    <td>{{ team['No Show (%)'] }}</td>
+                    <td>{{ team['Moved (%)'] }}</td>
+                    <td>{{ team['Dislodged Auto (%)'] }}</td>
+                    <td>{{ team['Dislodged Teleop (%)'] }}</td>
+                    <td>{{ team['Defense/Cross (%)'] }}</td>
+                    <td>{{ team['Tipped/Fell (%)'] }}</td>
+                    <td>{{ team['Died (%)'] }}</td>
+                    <td>{{ team['Defended (%)'] }}</td>
+                    <td>{{ team['Timer (avg)'] }}</td>
+                    <td>{{ team['L1 Coral Auto (avg)'] }}</td>
+                    <td>{{ team['L2 Coral Auto (avg)'] }}</td>
+                    <td>{{ team['L3 Coral Auto (avg)'] }}</td>
+                    <td>{{ team['L4 Coral Auto (avg)'] }}</td>
+                    <td>{{ team['Barge Algae Auto (avg)'] }}</td>
+                    <td>{{ team['Processor Algae Auto (avg)'] }}</td>
+                    <td>{{ team['Auto Fouls (avg)'] }}</td>
+                    <td>{{ team['L1 Coral Teleop (avg)'] }}</td>
+                    <td>{{ team['L2 Coral Teleop (avg)'] }}</td>
+                    <td>{{ team['L3 Coral Teleop (avg)'] }}</td>
+                    <td>{{ team['L4 Coral Teleop (avg)'] }}</td>
+                    <td>{{ team['Barge Algae Teleop (avg)'] }}</td>
+                    <td>{{ team['Processor Algae Teleop (avg)'] }}</td>
+                    <td>{{ team['Cage Touches (avg)'] }}</td>
+                    <td>{{ team['Offense Rating (avg)'] }}</td>
+                    <td>{{ team['Defense Rating (avg)'] }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="28">No team records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

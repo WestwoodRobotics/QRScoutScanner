@@ -158,3 +158,46 @@ def export_csv():
         writer.writerow(record)
     csv_data = output.getvalue()
     return Response(csv_data, mimetype='text/csv', headers={"Content-disposition": "attachment; filename=records.csv"})
+
+@app.route("/team-list")
+def team_list():
+    entries_file = "entries.txt"
+    team_data = {}
+    if os.path.exists(entries_file):
+        with open(entries_file, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    fields = [field.strip() for field in line.split('\t')]
+                    processed = process_record(fields)
+                    team = processed[3]  # Team Number at index 3
+                    if team not in team_data:
+                        team_data[team] = {"count": 0, "bool_sum": {}, "num_sum": {}}
+                    team_data[team]["count"] += 1
+                    rec = processed
+                    # Boolean fields
+                    for idx, key in [(5, "No Show"), (7, "Moved"), (15, "Dislodged Auto"), (17, "Dislodged Teleop"), (25, "Defense/Cross"), (26, "Tipped/Fell"), (28, "Died"), (30, "Defended")]:
+                        val = rec[idx].replace(" ●", "").strip().lower()
+                        team_data[team]["bool_sum"].setdefault(key, 0)
+                        if val == "true":
+                            team_data[team]["bool_sum"][key] += 1
+                    # Numeric fields
+                    for idx, key in [(8, "Timer"), (9, "L1 Coral Auto"), (10, "L2 Coral Auto"), (11, "L3 Coral Auto"), (12, "L4 Coral Auto"), (13, "Barge Algae Auto"), (14, "Processor Algae Auto"), (16, "Auto Fouls"), (19, "L1 Coral Teleop"), (20, "L2 Coral Teleop"), (21, "L3 Coral Teleop"), (22, "L4 Coral Teleop"), (23, "Barge Algae Teleop"), (24, "Processor Algae Teleop"), (27, "Cage Touches"), (31, "Offense Rating"), (32, "Defense Rating")]:
+                        try:
+                            num = float(rec[idx].replace(" ●", ""))
+                        except:
+                            num = 0
+                        team_data[team]["num_sum"].setdefault(key, 0)
+                        team_data[team]["num_sum"][key] += num
+    team_stats = []
+    for team, data in team_data.items():
+        count = data["count"]
+        row = {"Team Number": team, "Entry Count": count}
+        for key in ["No Show", "Moved", "Dislodged Auto", "Dislodged Teleop", "Defense/Cross", "Tipped/Fell", "Died", "Defended"]:
+            perc = (data["bool_sum"].get(key, 0) / count) * 100
+            row[key + " (%)"] = f"{perc:.1f}%"
+        for key in ["Timer", "L1 Coral Auto", "L2 Coral Auto", "L3 Coral Auto", "L4 Coral Auto", "Barge Algae Auto", "Processor Algae Auto", "Auto Fouls", "L1 Coral Teleop", "L2 Coral Teleop", "L3 Coral Teleop", "L4 Coral Teleop", "Barge Algae Teleop", "Processor Algae Teleop", "Cage Touches", "Offense Rating", "Defense Rating"]:
+            avg = data["num_sum"].get(key, 0) / count
+            row[key + " (avg)"] = f"{avg:.1f}"
+        team_stats.append(row)
+    return render_template("team_list.html", title="Team List", teams=team_stats)
