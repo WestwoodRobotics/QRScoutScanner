@@ -324,3 +324,7 @@ def api_team_data():
                     final_val = 1 if count_true > count_false else 0
                     data_points.append({"match": match_num, "value": final_val})
     return jsonify(data_points)
+
+@app.route('/service-worker.js')
+def service_worker():
+    return app.send_static_file('service-worker.js')

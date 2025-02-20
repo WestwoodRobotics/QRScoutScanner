@@ -1,19 +1,19 @@
 {
-  "name": "QR Code Scanner",
-  "short_name": "QRScanner",
+  "name": "QRScoutScanner",
+  "short_name": "QRScout",
   "description": "A PWA for scanning and managing QR codes",
-  "start_url": "/static/index.html",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#CC5500",
+  "background_color": "#333",
+  "theme_color": "#000000",
   "icons": [
     {
-      "src": "/static/icons/icon-192x192.png",
+      "src": "static/Octocat.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/static/icons/icon-512x512.png",
+      "src": "static/Octocat.png",
       "sizes": "512x512",
       "type": "image/png"
     }

@@ -2,10 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>QRScoutScanner</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-    <link rel="manifest" href="/static/manifest.json">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#333">
 </head>
 <body>
     <div class="container">
@@ -33,6 +36,9 @@
                     <h2>Scanned QR Codes</h2>
                     <ul id="qr-list"></ul>
                     <button id="upload-qr">Upload Unuploaded QR Codes</button>
+                    <div class="modal-footer">
+                        <button id="deleteCacheBtn" style="background-color: #dc3545; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold;">Delete Local Cache</button>
+                    </div>
                 </div>
             </div>
         </main>
@@ -40,14 +46,30 @@
     <script type="module" src="{{ url_for('static', filename='qr-scanner.js') }}"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/static/service-worker.js')
-                .then(function(registration) {
-                    console.log('Service Worker registered with scope:', registration.scope);
-                }).catch(function(error) {
-                    console.log('Service Worker registration failed:', error);
-                });
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/static/service-worker.js', { scope: '/' })
+                    .then(function(registration) {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    }).catch(function(error) {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
         }
         // Removed light/dark mode toggle logic
+
+        // Add functionality for Delete Local Cache button
+        document.getElementById('deleteCacheBtn') && document.getElementById('deleteCacheBtn').addEventListener('click', function(){
+            if(confirm('Are you sure you want to delete the local cache? This will reset scanned QR codes count to 0.')) {
+                // Assuming scanned QR codes are stored under the key "scannedQRCodes"
+                localStorage.removeItem('scannedQRCodes');
+                // Update any UI element that shows the scanned count, if exists
+                var scannedCountElem = document.getElementById('scannedCount');
+                if(scannedCountElem) {
+                    scannedCountElem.innerText = '0';
+                }
+                alert('Local cache cleared.');
+            }
+        });
     </script>
 </body>
 </html>
