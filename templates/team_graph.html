@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="/static/main.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+        }
+        .nav-container {
+            margin: 10px 0;
+            text-align: right;
+        }
+        .nav-button {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .form-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        input, select, button {
+            padding: 8px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+        }
+        #chartContainer {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+    </style>
+    <!-- Include Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Team Graph</h1>
+    <div class="nav-container">
+        <a href="/records" class="nav-button">Records</a>
+        <a href="/team-list" class="nav-button" style="margin-left: 10px; background-color: #28a745;">Team List</a>
+    </div>
+    <div class="form-container">
+        <label for="teamInput">Team Number: </label>
+        <input list="teams" id="teamInput" placeholder="Type team number..." />
+        <datalist id="teams">
+            {% for team in teams %}
+            <option value="{{ team }}"></option>
+            {% endfor %}
+        </datalist>
+        <label for="metricSelect">Metric: </label>
+        <select id="metricSelect">
+            <optgroup label="Numeric Metrics">
+                {% for key, idx in numeric_metrics.items() %}
+                <option value="{{ key }}">{{ key }}</option>
+                {% endfor %}
+            </optgroup>
+            <optgroup label="Boolean Metrics">
+                {% for key, idx in boolean_metrics.items() %}
+                <option value="{{ key }}">{{ key }}</option>
+                {% endfor %}
+            </optgroup>
+        </select>
+        <button id="graphBtn">Graph</button>
+    </div>
+    <div id="chartContainer">
+        <canvas id="teamChart"></canvas>
+    </div>
+
+    <script>
+        const graphBtn = document.getElementById('graphBtn');
+        const teamInput = document.getElementById('teamInput');
+        const metricSelect = document.getElementById('metricSelect');
+        const ctx = document.getElementById('teamChart').getContext('2d');
+        let chart; 
+
+        function fetchTeamData(team, metric) {
+            fetch(`/api/team-data?team=${encodeURIComponent(team)}&metric=${encodeURIComponent(metric)}`)
+                .then(response => response.json())
+                .then(data => {
+                    renderChart(data, metric);
+                });
+        }
+
+        function renderChart(data, metric) {
+            // sort data by match number
+            data.sort((a, b) => a.match - b.match);
+            const labels = data.map(point => 'Match ' + point.match);
+            const values = data.map(point => point.value);
+            const isNumeric = {{ numeric_metrics|tojson }}.hasOwnProperty(metric) || false;
+
+            const chartType = 'line';
+            const bgColor = (function(){
+                // For boolean metrics, we can use step line with two colors
+                if (!isNumeric) {
+                    return 'rgba(255, 159, 64, 0.2)';
+                } else {
+                    return 'rgba(54, 162, 235, 0.2)';
+                }
+            })();
+            const borderColor = (function(){
+                if (!isNumeric) {
+                    return 'rgba(255, 159, 64, 1)';
+                } else {
+                    return 'rgba(54, 162, 235, 1)';
+                }
+            })();
+
+            if(chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: metric,
+                        data: values,
+                        backgroundColor: bgColor,
+                        borderColor: borderColor,
+                        fill: false,
+                        tension: 0.1,
+                        stepped: !isNumeric
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        graphBtn.addEventListener('click', () => {
+            const team = teamInput.value.trim();
+            const metric = metricSelect.value;
+            if(team && metric) {
+                fetchTeamData(team, metric);
+            } else {
+                alert('Please enter a team number and select a metric');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -201,3 +201,126 @@ def team_list():
             row[key + " (avg)"] = f"{avg:.1f}"
         team_stats.append(row)
     return render_template("team_list.html", title="Team List", teams=team_stats)
+
+@app.route("/team-graph")
+def team_graph():
+    entries_file = "entries.txt"
+    teams = set()
+    if os.path.exists(entries_file):
+        with open(entries_file, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    fields = [field.strip() for field in line.split('\t')]
+                    processed = process_record(fields)
+                    teams.add(processed[3])
+    teams = sorted(teams)
+    numeric_metrics = {
+        "Timer": 8,
+        "L1 Coral Auto": 9,
+        "L2 Coral Auto": 10,
+        "L3 Coral Auto": 11,
+        "L4 Coral Auto": 12,
+        "Barge Algae Auto": 13,
+        "Processor Algae Auto": 14,
+        "Auto Fouls": 16,
+        "L1 Coral Teleop": 19,
+        "L2 Coral Teleop": 20,
+        "L3 Coral Teleop": 21,
+        "L4 Coral Teleop": 22,
+        "Barge Algae Teleop": 23,
+        "Processor Algae Teleop": 24,
+        "Cage Touches": 27,
+        "Offense Rating": 31,
+        "Defense Rating": 32
+    }
+    boolean_metrics = {
+        "No Show": 5,
+        "Moved": 7,
+        "Dislodged Auto": 15,
+        "Dislodged Teleop": 17,
+        "Defense/Cross": 25,
+        "Tipped/Fell": 26,
+        "Died": 28,
+        "Defended": 30
+    }
+    return render_template("team_graph.html", title="Team Graph", teams=teams, numeric_metrics=numeric_metrics, boolean_metrics=boolean_metrics)
+
+@app.route("/api/team-data")
+def api_team_data():
+    team = request.args.get("team")
+    metric = request.args.get("metric")
+    numeric_keys = ["Timer", "L1 Coral Auto", "L2 Coral Auto", "L3 Coral Auto", "L4 Coral Auto", "Barge Algae Auto", "Processor Algae Auto", "Auto Fouls", "L1 Coral Teleop", "L2 Coral Teleop", "L3 Coral Teleop", "L4 Coral Teleop", "Barge Algae Teleop", "Processor Algae Teleop", "Cage Touches", "Offense Rating", "Defense Rating"]
+    boolean_keys = ["No Show", "Moved", "Dislodged Auto", "Dislodged Teleop", "Defense/Cross", "Tipped/Fell", "Died", "Defended"]
+    is_numeric = metric in numeric_keys
+    entries_file = "entries.txt"
+    data_points = []
+    mapping = {**{
+        "Timer": 8,
+        "L1 Coral Auto": 9,
+        "L2 Coral Auto": 10,
+        "L3 Coral Auto": 11,
+        "L4 Coral Auto": 12,
+        "Barge Algae Auto": 13,
+        "Processor Algae Auto": 14,
+        "Auto Fouls": 16,
+        "L1 Coral Teleop": 19,
+        "L2 Coral Teleop": 20,
+        "L3 Coral Teleop": 21,
+        "L4 Coral Teleop": 22,
+        "Barge Algae Teleop": 23,
+        "Processor Algae Teleop": 24,
+        "Cage Touches": 27,
+        "Offense Rating": 31,
+        "Defense Rating": 32
+    }, **{
+        "No Show": 5,
+        "Moved": 7,
+        "Dislodged Auto": 15,
+        "Dislodged Teleop": 17,
+        "Defense/Cross": 25,
+        "Tipped/Fell": 26,
+        "Died": 28,
+        "Defended": 30
+    }}
+    if os.path.exists(entries_file) and team and metric:
+        with open(entries_file, "r") as f:
+            records = []
+            for line in f:
+                line = line.strip()
+                if line:
+                    fields = [field.strip() for field in line.split('\t')]
+                    processed = process_record(fields)
+                    if processed[3] == team:
+                        records.append(processed)
+            records.sort(key=lambda x: int(x[1]))
+            
+            # Group records by match number
+            grouped = {}
+            for rec in records:
+                match_num = int(rec[1])
+                idx = mapping.get(metric)
+                if idx is not None:
+                    raw = rec[idx].replace(" ●", "").strip().toLowerCase() if hasattr(rec[idx], 'toLowerCase') else rec[idx].replace(" ●", "").strip().lower()
+                    if is_numeric:
+                        try:
+                            value = float(raw)
+                        except:
+                            value = 0
+                    else:
+                        value = 1 if raw == "true" else 0
+                    grouped.setdefault(match_num, []).append(value)
+            
+            # Compute averaged value for each match
+            for match_num in sorted(grouped.keys()):
+                values = grouped[match_num]
+                if is_numeric:
+                    avg = sum(values) / len(values)
+                    data_points.append({"match": match_num, "value": avg})
+                else:
+                    count_true = sum(values)
+                    count_false = len(values) - count_true
+                    # Prioritize false in tie
+                    final_val = 1 if count_true > count_false else 0
+                    data_points.append({"match": match_num, "value": final_val})
+    return jsonify(data_points)
