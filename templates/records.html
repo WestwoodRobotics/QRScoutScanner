@@ -88,7 +88,8 @@
         <a href="/team-graph" class="nav-button" style="display: inline-block; margin-left: 10px; padding: 8px 16px; background-color: #17a2b8; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;">Team Graph</a>
     </div>
     <div class="table-responsive">
-        <table>
+        <button id="revert-sort-btn" style="display:none; margin-bottom:10px;">Revert Sort</button>
+        <table id="sortable-table">
             <thead>
                 <tr>
                     <th colspan="7" class="section-header">Prematch</th>
@@ -144,10 +145,11 @@
                 {% for record in records %}
                 <tr>
                     {% for field in record %}
-                        {% if field.strip() == "true" %}
-                            <td style="background-color: #4CAF50; color: white;">True</td>
-                        {% elif field.strip() == "false" %}
-                            <td style="background-color: #F44336; color: white;">False</td>
+                        {% set clean = field.strip().replace(' ●', '') %}
+                        {% if clean == "true" %}
+                            <td style="background-color: #4CAF50; color: white;">{{ field }}</td>
+                        {% elif clean == "false" %}
+                            <td style="background-color: #F44336; color: white;">{{ field }}</td>
                         {% else %}
                             <td>{{ field }}</td>
                         {% endif %}
@@ -159,5 +161,75 @@
             </tbody>
         </table>
     </div>
+    <script>
+        (function(){
+            const table = document.getElementById('sortable-table');
+            if(!table) return;
+
+            const revertBtn = document.getElementById('revert-sort-btn');
+            const tbody = table.querySelector('tbody');
+            if(!tbody) return;
+            // Store the original order
+            const defaultHTML = tbody.innerHTML;
+
+            // Function to sort the table by a column with improved numeric parsing
+            function sortTableByColumn(columnIndex, ascending) {
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                rows.sort((a, b) => {
+                    // Get text and remove non-numeric characters if needed
+                    const aText = a.children[columnIndex].innerText.trim();
+                    const bText = b.children[columnIndex].innerText.trim();
+                    const aClean = aText.replace(/[^0-9.-]/g, '');
+                    const bClean = bText.replace(/[^0-9.-]/g, '');
+                    const aNum = parseFloat(aClean);
+                    const bNum = parseFloat(bClean);
+                    if (!isNaN(aNum) && !isNaN(bNum)) {
+                        return ascending ? aNum - bNum : bNum - aNum;
+                    } else {
+                        return ascending ? aText.localeCompare(bText) : bText.localeCompare(aText);
+                    }
+                });
+                // Rebuild tbody
+                tbody.innerHTML = '';
+                rows.forEach(row => tbody.appendChild(row));
+            }
+
+            // Attach click events to every header cell in the second header row only
+            const headers = table.querySelector('thead tr:nth-child(2)').querySelectorAll('th');
+            // Store original header text for each header
+            headers.forEach(th => { th.setAttribute('data-original', th.innerText.trim()); });
+
+            headers.forEach((th, index) => {
+                // initialize sort direction attribute
+                th.setAttribute('data-ascending', 'true');
+                th.style.cursor = 'pointer';
+                th.addEventListener('click', function(){
+                    // Reset all headers to original text
+                    headers.forEach(header => { header.innerHTML = header.getAttribute('data-original'); });
+
+                    const currentAsc = th.getAttribute('data-ascending') === 'true';
+                    sortTableByColumn(index, currentAsc);
+                    // Toggle sort direction attribute for next click
+                    th.setAttribute('data-ascending', (!currentAsc).toString());
+
+                    // Append sort icon: upward triangle for ascending, downward for descending
+                    th.innerHTML = th.getAttribute('data-original') + (currentAsc ? ' &#9650;' : ' &#9660;');
+
+                    // Show revert sort button
+                    revertBtn.style.display = 'inline-block';
+                });
+            });
+
+            // Update revert button event handler to reset header texts
+            revertBtn.addEventListener('click', function(){
+                tbody.innerHTML = defaultHTML;
+                revertBtn.style.display = 'none';
+                headers.forEach(th => {
+                    th.innerHTML = th.getAttribute('data-original');
+                    th.setAttribute('data-ascending', 'true');
+                });
+            });
+        })();
+    </script>
 </body>
 </html>

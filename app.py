@@ -75,13 +75,79 @@ def translate_field(index, value):
         translated += " ●"
     return translated
 
+# New validation configuration for each field index
+field_validations = {
+    0: {"type": "text"},
+    1: {"type": "number"},
+    2: {"type": "select", "choices": ["R1", "R2", "R3", "B1", "B2", "B3"]},
+    3: {"type": "number"},
+    4: {"type": "select", "choices": ["R1", "R2", "R3"]},
+    5: {"type": "boolean"},
+    6: {"type": "select", "choices": ["SP1", "SP2"]},
+    7: {"type": "boolean"},
+    8: {"type": "number"},
+    9: {"type": "number"},
+    10: {"type": "number"},
+    11: {"type": "number"},
+    12: {"type": "number"},
+    13: {"type": "number"},
+    14: {"type": "number"},
+    15: {"type": "boolean"},
+    16: {"type": "number"},
+    17: {"type": "boolean"},
+    18: {"type": "select", "choices": ["1", "2", "3", "4"]},
+    19: {"type": "number"},
+    20: {"type": "number"},
+    21: {"type": "number"},
+    22: {"type": "number"},
+    23: {"type": "number"},
+    24: {"type": "number"},
+    25: {"type": "boolean"},
+    26: {"type": "boolean"},
+    27: {"type": "number"},
+    28: {"type": "boolean"},
+    29: {"type": "select", "choices": ["No", "P", "Sc", "Dc", "Fc"]},
+    30: {"type": "boolean"},
+    31: {"type": "number"},
+    32: {"type": "number"},
+    33: {"type": "select", "choices": ["No Card", "Yellow", "Red"]},
+    34: {"type": "text"}
+}
+
+def validate_field(index, value):
+    config = field_validations.get(index, {"type": "text"})
+    field_type = config["type"]
+    if field_type == "number":
+        try:
+            # Check if value can be converted to a float
+            float(value)
+            return True, value
+        except:
+            return False, None
+    elif field_type == "boolean":
+        if value.lower() in ["true", "false"]:
+            return True, value.lower()
+        else:
+            return False, None
+    elif field_type == "select":
+        if value in config.get("choices", []):
+            return True, value
+        else:
+            return False, None
+    # For text type, always valid
+    return True, value
+
+
 def process_record(fields):
     new_record = []
     for i in range(EXPECTED_FIELDS):
         if i < len(fields) and fields[i] != '':
-            new_record.append(fields[i])
+            valid, norm = validate_field(i, fields[i].strip())
+            if valid:
+                new_record.append(fields[i].strip())
+            else:
+                new_record.append(schema_defaults[i] + " ●")
         else:
-            # Append default value with ambiguous marker
             new_record.append(schema_defaults[i] + " ●")
 
     # Apply translations for fields that have mappings
@@ -170,35 +236,56 @@ def team_list():
                 if line:
                     fields = [field.strip() for field in line.split('\t')]
                     processed = process_record(fields)
+                    # Include all records, ambiguous or not
                     team = processed[3]  # Team Number at index 3
                     if team not in team_data:
-                        team_data[team] = {"count": 0, "bool_sum": {}, "num_sum": {}}
-                    team_data[team]["count"] += 1
+                        team_data[team] = {
+                            "total": 0,
+                            "bool_sum": {},
+                            "bool_valid": {},
+                            "num_sum": {},
+                            "num_valid": {}
+                        }
+                    team_data[team]["total"] += 1
                     rec = processed
                     # Boolean fields
                     for idx, key in [(5, "No Show"), (7, "Moved"), (15, "Dislodged Auto"), (17, "Dislodged Teleop"), (25, "Defense/Cross"), (26, "Tipped/Fell"), (28, "Died"), (30, "Defended")]:
-                        val = rec[idx].replace(" ●", "").strip().lower()
-                        team_data[team]["bool_sum"].setdefault(key, 0)
-                        if val == "true":
-                            team_data[team]["bool_sum"][key] += 1
+                        val = rec[idx].strip().lower();
+                        if "●" not in rec[idx]:
+                            team_data[team]["bool_valid"].setdefault(key, 0)
+                            team_data[team]["bool_valid"][key] += 1
+                            team_data[team]["bool_sum"].setdefault(key, 0)
+                            if val == "true":
+                                team_data[team]["bool_sum"][key] += 1
                     # Numeric fields
                     for idx, key in [(8, "Timer"), (9, "L1 Coral Auto"), (10, "L2 Coral Auto"), (11, "L3 Coral Auto"), (12, "L4 Coral Auto"), (13, "Barge Algae Auto"), (14, "Processor Algae Auto"), (16, "Auto Fouls"), (19, "L1 Coral Teleop"), (20, "L2 Coral Teleop"), (21, "L3 Coral Teleop"), (22, "L4 Coral Teleop"), (23, "Barge Algae Teleop"), (24, "Processor Algae Teleop"), (27, "Cage Touches"), (31, "Offense Rating"), (32, "Defense Rating")]:
-                        try:
-                            num = float(rec[idx].replace(" ●", ""))
-                        except:
-                            num = 0
-                        team_data[team]["num_sum"].setdefault(key, 0)
-                        team_data[team]["num_sum"][key] += num
+                        if "●" not in rec[idx]:
+                            team_data[team]["num_valid"].setdefault(key, 0)
+                            team_data[team]["num_valid"][key] += 1
+                            try:
+                                num = float(rec[idx].replace(" ●", ""))
+                            except:
+                                num = 0
+                            team_data[team]["num_sum"].setdefault(key, 0)
+                            team_data[team]["num_sum"][key] += num
     team_stats = []
     for team, data in team_data.items():
-        count = data["count"]
-        row = {"Team Number": team, "Entry Count": count}
+        total = data["total"]
+        row = {"Team Number": team, "Entry Count": total}
         for key in ["No Show", "Moved", "Dislodged Auto", "Dislodged Teleop", "Defense/Cross", "Tipped/Fell", "Died", "Defended"]:
-            perc = (data["bool_sum"].get(key, 0) / count) * 100
-            row[key + " (%)"] = f"{perc:.1f}%"
+            valid = data["bool_valid"].get(key, 0)
+            if valid > 0:
+                perc = (data["bool_sum"].get(key, 0) / valid) * 100
+                row[key + " (%)"] = f"{perc:.1f}%"
+            else:
+                row[key + " (%)"] = "N/A"
         for key in ["Timer", "L1 Coral Auto", "L2 Coral Auto", "L3 Coral Auto", "L4 Coral Auto", "Barge Algae Auto", "Processor Algae Auto", "Auto Fouls", "L1 Coral Teleop", "L2 Coral Teleop", "L3 Coral Teleop", "L4 Coral Teleop", "Barge Algae Teleop", "Processor Algae Teleop", "Cage Touches", "Offense Rating", "Defense Rating"]:
-            avg = data["num_sum"].get(key, 0) / count
-            row[key + " (avg)"] = f"{avg:.1f}"
+            valid = data["num_valid"].get(key, 0)
+            if valid > 0:
+                avg = data["num_sum"].get(key, 0) / valid
+                row[key + " (avg)"] = f"{avg:.1f}"
+            else:
+                row[key + " (avg)"] = "N/A"
         team_stats.append(row)
     return render_template("team_list.html", title="Team List", teams=team_stats)
 
@@ -213,6 +300,9 @@ def team_graph():
                 if line:
                     fields = [field.strip() for field in line.split('\t')]
                     processed = process_record(fields)
+                    # Skip ambiguous records
+                    if any('●' in field for field in processed):
+                        continue
                     teams.add(processed[3])
     teams = sorted(teams)
     numeric_metrics = {
@@ -294,35 +384,36 @@ def api_team_data():
                     if processed[3] == team:
                         records.append(processed)
             records.sort(key=lambda x: int(x[1]))
-            
+
             # Group records by match number
             grouped = {}
             for rec in records:
                 match_num = int(rec[1])
                 idx = mapping.get(metric)
                 if idx is not None:
-                    raw = rec[idx].replace(" ●", "").strip().toLowerCase() if hasattr(rec[idx], 'toLowerCase') else rec[idx].replace(" ●", "").strip().lower()
-                    if is_numeric:
-                        try:
-                            value = float(raw)
-                        except:
-                            value = 0
-                    else:
-                        value = 1 if raw == "true" else 0
-                    grouped.setdefault(match_num, []).append(value)
-            
+                    # Only include value if not ambiguous
+                    if '●' not in rec[idx]:
+                        raw = rec[idx].replace(" ●", "").strip().lower()
+                        if is_numeric:
+                            try:
+                                value = float(raw)
+                            except:
+                                value = 0
+                        else:
+                            value = 1 if raw == "true" else 0
+                        grouped.setdefault(match_num, []).append(value)
             # Compute averaged value for each match
             for match_num in sorted(grouped.keys()):
                 values = grouped[match_num]
-                if is_numeric:
-                    avg = sum(values) / len(values)
-                    data_points.append({"match": match_num, "value": avg})
-                else:
-                    count_true = sum(values)
-                    count_false = len(values) - count_true
-                    # Prioritize false in tie
-                    final_val = 1 if count_true > count_false else 0
-                    data_points.append({"match": match_num, "value": final_val})
+                if values:
+                    if is_numeric:
+                        avg = sum(values) / len(values)
+                        data_points.append({"match": match_num, "value": avg})
+                    else:
+                        count_true = sum(values)
+                        count_false = len(values) - count_true
+                        final_val = 1 if count_true > count_false else 0
+                        data_points.append({"match": match_num, "value": final_val})
     return jsonify(data_points)
 
 @app.route('/service-worker.js')

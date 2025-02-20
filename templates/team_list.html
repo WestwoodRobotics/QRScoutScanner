@@ -74,7 +74,8 @@
         <a href="/team-graph" class="nav-button" style="margin-left: 10px; background-color: #17a2b8;">Team Graph</a>
     </div>
     <div class="table-responsive">
-        <table>
+        <button id="revert-sort-btn" style="display:none; margin-bottom:10px;">Revert Sort</button>
+        <table id="sortable-table">
             <thead>
                 <tr>
                     <!-- Table header: adjust based on computed keys -->
@@ -144,5 +145,71 @@
             </tbody>
         </table>
     </div>
+    <script>
+        (function(){
+            const table = document.getElementById('sortable-table');
+            if(!table) return;
+
+            const revertBtn = document.getElementById('revert-sort-btn');
+            const tbody = table.querySelector('tbody');
+            if(!tbody) return;
+            // Store the original order
+            const defaultHTML = tbody.innerHTML;
+
+            // Function to sort the table by a column
+            function sortTableByColumn(columnIndex, ascending) {
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                rows.sort((a, b) => {
+                    const aText = a.children[columnIndex].innerText.trim();
+                    const bText = b.children[columnIndex].innerText.trim();
+                    const aNum = parseFloat(aText);
+                    const bNum = parseFloat(bText);
+                    if(!isNaN(aNum) && !isNaN(bNum)) {
+                        return ascending ? aNum - bNum : bNum - aNum;
+                    } else {
+                        return ascending ? aText.localeCompare(bText) : bText.localeCompare(aText);
+                    }
+                });
+                // Rebuild tbody
+                tbody.innerHTML = '';
+                rows.forEach(row => tbody.appendChild(row));
+            }
+
+            // Attach click events to every header cell
+            const headers = table.querySelectorAll('thead th');
+            // Store original header text for each header
+            headers.forEach(th => { th.setAttribute('data-original', th.innerText.trim()); });
+
+            headers.forEach((th, index) => {
+                th.setAttribute('data-ascending', 'true');
+                th.style.cursor = 'pointer';
+                th.addEventListener('click', function(){
+                    // Reset all headers to original text
+                    headers.forEach(header => { header.innerHTML = header.getAttribute('data-original'); });
+
+                    const currentAsc = th.getAttribute('data-ascending') === 'true';
+                    sortTableByColumn(index, currentAsc);
+                    // Toggle attribute for next click
+                    th.setAttribute('data-ascending', (!currentAsc).toString());
+                    
+                    // Append sort icon to the header text: upward triangle for ascending, downward for descending
+                    th.innerHTML = th.getAttribute('data-original') + (currentAsc ? ' &#9650;' : ' &#9660;');
+
+                    revertBtn.style.display = 'inline-block';
+                });
+            });
+
+            // Event for revert sort
+            revertBtn.addEventListener('click', function(){
+                tbody.innerHTML = defaultHTML;
+                revertBtn.style.display = 'none';
+                // Reset header sort indicators
+                headers.forEach(th => {
+                    th.innerHTML = th.getAttribute('data-original');
+                    th.setAttribute('data-ascending', 'true');
+                });
+            });
+        })();
+    </script>
 </body>
 </html>
