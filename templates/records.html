@@ -2,38 +2,154 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <title>Scouting Records</title>
+    <link rel="stylesheet" href="/static/main.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse;
+            font-size: 14px;
+            margin: 20px 0;
+            /* Prevent table from breaking on small screens */
+            min-width: 800px;
+        }
+        th, td { 
+            border: 1px solid #555; 
+            padding: 8px; 
+            text-align: center; 
+        }
+        th { 
+            background-color: #333;
+            font-weight: 600;
+            color: #fff;
+        }
+        th[colspan] {
+            background-color: #444;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+        .tooltip:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 100%;
+            white-space: pre-wrap;
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            padding: 8px;
+            border-radius: 4px;
+            z-index: 10;
+            width: 220px;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        tbody tr:nth-child(even) {
+            background-color: #1e1e1e;
+        }
+        tbody tr:hover {
+            background-color: #2a2a2a;
+        }
+        .section-header {
+            padding: 12px;
+            font-size: 15px;
+        }
+        /* Mobile responsive styling */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+        @media (max-width: 600px) {
+            table {
+                font-size: 12px;
+            }
+            th, td {
+                padding: 6px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>QR Code Scanner Records</h1>
-            <p>Below is a list of all uploaded QR codes.</p>
-        </header>
-        <main>
-            {% if records|length == 0 %}
-                <p style="text-align:center;">No records found.</p>
-            {% else %}
-                <table>
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>QR Data</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in records %}
-                            <tr>
-                                <td>{{ loop.index }}</td>
-                                <td>{{ record }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% endif %}
-        </main>
+    <h1>Scouting Records</h1>
+    <div class="export-container" style="margin: 10px 0; text-align: right;">
+        <a href="/export_csv" class="export-button" style="display: inline-block; padding: 8px 16px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 4px; font-weight: bold;">Export to CSV</a>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="7" class="section-header">Prematch</th>
+                    <th colspan="10" class="section-header">Autonomous</th>
+                    <th colspan="12" class="section-header">Teleop</th>
+                    <th colspan="2" class="section-header">Endgame</th>
+                    <th colspan="4" class="section-header">Postmatch</th>
+                </tr>
+                <tr>
+                    <!-- Prematch Fields -->
+                    <th class="tooltip" data-tooltip="Type: Text&#10;Initials of the person scouting">Scouter Initials</th>
+                    <th class="tooltip" data-tooltip="Type: Number&#10;The match being scouted">Match Number</th>
+                    <th class="tooltip" data-tooltip="Type: Select&#10;Robot position (R1-R3, B1-B3)">Robot Position</th>
+                    <th class="tooltip" data-tooltip="Type: Number&#10;Team being scouted (0-19999)">Team Number</th>
+                    <th class="tooltip" data-tooltip="Type: Select&#10;Robot's starting position (Left/Middle/Right)">Starting Position</th>
+                    <th class="tooltip" data-tooltip="Type: Boolean&#10;If robot didn't show up">No Show</th>
+                    <th class="tooltip" data-tooltip="Type: Select&#10;Starting cage level (Deep/Shallow)">Cage Position</th>
+                    <!-- Autonomous Fields -->
+                    <th class="tooltip" data-tooltip="Type: Boolean&#10;If robot moved during auto">Moved</th>
+                    <th class="tooltip" data-tooltip="Type: Timer&#10;Time taken in autonomous">Timer</th>
+                    <th class="tooltip" data-tooltip="Type: Counter&#10;Level 1 coral scored in auto">L1 Coral</th>
+                    <th class="tooltip" data-tooltip="Type: Counter&#10;Level 2 coral scored in auto">L2 Coral</th>
+                    <th class="tooltip" data-tooltip="Type: Counter&#10;Level 3 coral scored in auto">L3 Coral</th>
+                    <th class="tooltip" data-tooltip="Type: Counter&#10;Level 4 coral scored in auto">L4 Coral</th>
+                    <th class="tooltip" data-tooltip="Type: Counter&#10;Algae scored in barge during auto">Barge Algae</th>
+                    <th class="tooltip" data-tooltip="Type: Counter&#10;Algae scored in processor during auto">Processor Algae</th>
+                    <th class="tooltip" data-tooltip="Type: Boolean&#10;If algae was dislodged in auto">Dislodged Algae</th>
+                    <th class="tooltip" data-tooltip="Type: Counter&#10;Number of fouls in auto">Fouls</th>
+                    <!-- Teleop Fields -->
+                    <th class="tooltip" data-tooltip="Type: Boolean&#10;If algae was dislodged in teleop">Dislodged Algae</th>
+                    <th class="tooltip" data-tooltip="Type: Select&#10;Where game pieces were picked up from">Pickup Location</th>
+                    <th class="tooltip" data-tooltip="Type: Counter&#10;Level 1 coral scored in teleop">L1 Coral</th>
+                    <th class="tooltip" data-tooltip="Type: Counter&#10;Level 2 coral scored in teleop">L2 Coral</th>
+                    <th class="tooltip" data-tooltip="Type: Counter&#10;Level 3 coral scored in teleop">L3 Coral</th>
+                    <th class="tooltip" data-tooltip="Type: Counter&#10;Level 4 coral scored in teleop">L4 Coral</th>
+                    <th class="tooltip" data-tooltip="Type: Counter&#10;Algae scored in barge during teleop">Barge Algae</th>
+                    <th class="tooltip" data-tooltip="Type: Counter&#10;Algae scored in processor during teleop">Processor Algae</th>
+                    <th class="tooltip" data-tooltip="Type: Boolean&#10;If robot played defense/crossed field">Defense/Cross</th>
+                    <th class="tooltip" data-tooltip="Type: Boolean&#10;If robot tipped or fell over">Tipped/Fell</th>
+                    <th class="tooltip" data-tooltip="Type: Counter&#10;Number of times opposing cage was touched">Cage Touches</th>
+                    <th class="tooltip" data-tooltip="Type: Boolean&#10;If robot died during teleop">Died</th>
+                    <!-- Endgame Fields -->
+                    <th class="tooltip" data-tooltip="Type: Select&#10;Final position (Not Parked/Parked/Shallow Climb/Deep Climb/Failed Climb)">End Position</th>
+                    <th class="tooltip" data-tooltip="Type: Boolean&#10;If robot defended in endgame">Defended</th>
+                    <!-- Postmatch Fields -->
+                    <th class="tooltip" data-tooltip="Type: Range&#10;Rating of offensive capability (1-5)">Offense Rating</th>
+                    <th class="tooltip" data-tooltip="Type: Range&#10;Rating of defensive capability (1-5)">Defense Rating</th>
+                    <th class="tooltip" data-tooltip="Type: Select&#10;Card status (No Card/Yellow Card/Red Card)">Card Status</th>
+                    <th class="tooltip" data-tooltip="Type: Text&#10;Additional comments (max 50 chars)">Comments</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    {% for field in record %}
+                    <td>{{ field }}</td>
+                    {% endfor %}
+                </tr>
+                {% else %}
+                <tr><td colspan="35">No records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </body>
 </html>
