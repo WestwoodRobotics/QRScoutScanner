@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Graph</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <!-- Include Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .nav {
+            margin-bottom: 20px;
+        }
+        .nav .nav-button {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation Bar -->
+        <div class="nav">
+            <a href="/records" class="nav-button">Records</a>
+            <a href="/team-list" class="nav-button">Team List</a>
+            <a href="/team-graph" class="nav-button">Team Graph</a>
+        </div>
+
+        <h1>Custom Graph</h1>
+        <form method="get" action="/custom-graph">
+            <label for="x_metric">Select X Axis Metric:</label>
+            <select name="x_metric" id="x_metric" required>
+                <option value="" disabled {% if not selected_x %}selected{% endif %}>--Select X Metric--</option>
+                {% for key, value in available_metrics.items() %}
+                    <option value="{{ key }}" {% if key == selected_x %}selected{% endif %}>{{ key }}</option>
+                {% endfor %}
+            </select>
+            <br><br>
+            <label for="y_metric">Select Y Axis Metric:</label>
+            <select name="y_metric" id="y_metric" required>
+                <option value="" disabled {% if not selected_y %}selected{% endif %}>--Select Y Metric--</option>
+                {% for key, value in available_metrics.items() %}
+                    <option value="{{ key }}" {% if key == selected_y %}selected{% endif %}>{{ key }}</option>
+                {% endfor %}
+            </select>
+            <br><br>
+            <button type="submit">Generate Graph</button>
+        </form>
+
+        {% if data_points %}
+            <h2>Graph Results</h2>
+            <canvas id="myChart"></canvas>
+            <script>
+                // Define metric unit mappings
+                const metricUnits = {
+                    "Timer": "sec",
+                    "L1 Coral Auto": "",
+                    "L2 Coral Auto": "",
+                    "L3 Coral Auto": "",
+                    "L4 Coral Auto": "",
+                    "Barge Algae Auto": "",
+                    "Processor Algae Auto": "",
+                    "Auto Fouls": "fouls",
+                    "L1 Coral Teleop": "",
+                    "L2 Coral Teleop": "",
+                    "L3 Coral Teleop": "",
+                    "L4 Coral Teleop": "",
+                    "Barge Algae Teleop": "",
+                    "Processor Algae Teleop": "",
+                    "Cage Touches": "touches",
+                    "Offense Rating": "points",
+                    "Defense Rating": "points",
+                    "No Show": "",
+                    "Moved": "",
+                    "Dislodged Auto": "",
+                    "Dislodged Teleop": "",
+                    "Defense/Cross": "",
+                    "Tipped/Fell": "",
+                    "Died": "",
+                    "Defended": ""
+                };
+
+                // Get selected metrics from template variables
+                const selectedX = "{{ selected_x|default('') }}";
+                const selectedY = "{{ selected_y|default('') }}";
+
+                // Prepare data for scatter chart
+                const dataPoints = {{ data_points | tojson }};
+                const chartData = {
+                    datasets: [{
+                        label: 'Teams',
+                        data: dataPoints.map(dp => ({x: dp.x, y: dp.y, team: dp.team})),
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    }]
+                };
+                
+                const config = {
+                    type: 'scatter',
+                    data: chartData,
+                    options: {
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const team = context.raw.team;
+                                        return 'Team ' + team + ': (' + context.parsed.x.toFixed(2) + ', ' + context.parsed.y.toFixed(2) + ')';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: (selectedX || 'X Axis') + (metricUnits[selectedX] ? ' (' + metricUnits[selectedX] + ')' : ''),
+                                    color: 'white'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: (selectedY || 'Y Axis') + (metricUnits[selectedY] ? ' (' + metricUnits[selectedY] + ')' : ''),
+                                    color: 'white'
+                                }
+                            }
+                        }
+                    }
+                };
+                
+                const ctx = document.getElementById('myChart').getContext('2d');
+                const myChart = new Chart(ctx, config);
+            </script>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,22 @@
+Jack Chubick	1	R1	190	R1	false	SP1	true	0	0	0	0	2	0	0	alse	0	true		0	3	4	3	0	0	false	false	0	false	Dc	false	4	2	No Card	2 sec climb
+William	1	R1	190	R3	false	SP1	true	0	0	0	0	2	0	0	false	0	true		1	3	4	3	0	0	false	false	0	false	Dc	false	5	3	No Card	Smooth driver
+Aarush	1	R1	190	R1	false	SP1	true	0	0	0	0	2	0	0	true	0	false	3	0	2	4	3	0	0	false	false	0	false	Dc	false	4	3	No Card	L4 dropped 
+Patrick D Davoli 	1	R1	190	R3	false	SP1	true	0	0	0	0	2	0	false	0	true	3	0	3	4	3	0	0	false	false	0	false	Dc	false	5	1	No Card	The goats 
+Dheeraj Tanniru	1	R1	190	R3	false	SP1	true	0	0	0	0	2	0	0	false	0	true	3	0	3	4	3	0	0	false	false	0	false	Dc	false	5	1	No Card	
+Nishka 	1	R1	190	R1	false	SP1	true	0	0	0	0	2	0	0	true	0	false	3	0	2	4	3	0	0	false	false	0	false	Dc	false	5	1	No Card	Dropped 2 corals one in auto one in teleop
+Lasya Medikonduru	1	R1	190	R1	false	SP1	true	0	0	0	0	2	0	false	0	false	3	0	3	4	3	0	0	false	false	0	false	Dc	false	4	3	No Card	
+Nav P	1	R1	1058	R1	false	SP2	true	0	0	0	0	2	0	0	false	0	false	3	0	3	4	3	0	0	false	false	0	false	Dc	false	4	1	No Card	Lot of time spent aline 
+SD	1	R1	4909	R2	true	SP2	true	0	3	2	1	1	2	3	true	1	true	4	1	2	3	4	3	2	true	true	1	true	P	true	4	2	Red	
+Reesha Malpani	1	R1	190	R1	false	SP1	false	0	0	0	0	2	0	0	alse	0	false		0	3	4	3	0	0	false	false	0	false	Dc	false	4	3	No Card	
+Jason Cheng 	1	R1	190	R3	false	SP1	true	0	0	0	0	2	0	0	alse	0	false	4	0	3	4	3	0	0	false	false	0	false	Dc	false	4	3	No Card	
+satchi	1	R1	190	R1	false	SP1	true	0	0	0	0	2	0	0	false	0	false	3	0	2	5	3	0	0	false	false	0	false	Dc	false	4	2	No Card	
+GN	1	R1	190	R1	false	SP1	false	0	0	0	0	2	0	0	false	0	false	3	0	2	4	3	0	0	false	false	0	false	Dc	false	5	1	No Card	Dropped 2 Coral one in auto and 2 in teleop 
+Alan	1	R1	190	R3	false	SP1	true	0	0	0	0	2	0	0	false	0	false	3	0	2	4	3	0	0	false	false	0	false	Dc	false	5	1	No Card	Goated ahh team
+Derp(I think you can guess hehehe)	1	R1	190	R1	false	SP1	true	0	0	0	0	0	0	false	0	true	3	0	2	4	3	0	0	false	false	0	false	Dc	false	3	3	No Card	Yesh
+Alex	6	R2	4909	R2	true	SP2	true	0	3	2	1	1	2	3	true	1	true	4	1	2	3	4	3	2	true	true	1	true	P	true	4	2	Red	
+Alex	2	R1	190	R1	false	SP1	false	0	0	0	0	2	0	0	alse	0	false		0	3	4	3	0	0	false	false	0	false	Dc	false	4	3	No Card	
+Alex	3	R1	190	R3	false	SP1	true	0	0	0	0	2	0	0	alse	0	false	4	0	3	4	3	0	0	false	false	0	false	Dc	false	4	3	No Card	
+Alex	4	R1	190	R1	false	SP1	true	0	0	0	0	2	0	0	false	0	false	3	0	2	5	3	0	0	false	false	0	false	Dc	false	4	2	No Card	
+Alex	5	R1	190	R1	false	SP1	false	0	0	0	0	2	0	0	false	0	false	3	0	2	4	3	0	0	false	false	0	false	Dc	false	5	1	No Card	
+Alex	6	R1	190	R3	false	SP1	true	0	0	0	0	2	0	0	false	0	false	3	0	2	4	3	0	0	false	false	0	false	Dc	false	5	1	No Card	
+Alex	7	R1	190	R1	false	SP1	true	0	0	0	0	0	0	false	0	true	3	0	2	4	3	0	0	false	false	0	false	Dc	false	3	3	No Card	

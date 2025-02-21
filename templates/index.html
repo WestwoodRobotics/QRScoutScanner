@@ -62,15 +62,10 @@
             if(confirm('Are you sure you want to delete the local cache? This will reset scanned QR codes count to 0.')) {
                 // Assuming scanned QR codes are stored under the key "scannedQRCodes"
                 localStorage.removeItem('scannedQRCodes');
-                // Update UI element that shows the scanned count without reloading
-                var qrCountElem = document.getElementById('qr-count');
-                if(qrCountElem) {
-                    qrCountElem.innerText = '0';
-                }
-                // Optionally, clear the modal list of QR codes if needed
-                var qrListElem = document.getElementById('qr-list');
-                if(qrListElem) {
-                    qrListElem.innerHTML = '';
+                // Update any UI element that shows the scanned count, if exists
+                var scannedCountElem = document.getElementById('scannedCount');
+                if(scannedCountElem) {
+                    scannedCountElem.innerText = '0';
                 }
                 alert('Local cache cleared.');
             }
