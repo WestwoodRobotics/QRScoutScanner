@@ -57,6 +57,13 @@
         tbody tr:hover {
             background-color: #2a2a2a;
         }
+        .metric-group {
+            background-color: #2c3e50;
+        }
+        .std-dev {
+            background-color: #444;
+            color: #ffcc00;
+        }
         @media (max-width: 600px) {
             table {
                 font-size: 12px;
@@ -83,9 +90,11 @@
         <table id="sortable-table">
             <thead>
                 <tr>
-                    <!-- Table header: adjust based on computed keys -->
+                    <!-- Table header: team info -->
                     <th>Team Number</th>
                     <th>Entry Count</th>
+                    
+                    <!-- Boolean metrics -->
                     <th>No Show (%)</th>
                     <th>Moved (%)</th>
                     <th>Dislodged Auto (%)</th>
@@ -94,23 +103,58 @@
                     <th>Tipped/Fell (%)</th>
                     <th>Died (%)</th>
                     <th>Defended (%)</th>
-                    <th>Timer (avg)</th>
-                    <th>L1 Coral Auto (avg)</th>
-                    <th>L2 Coral Auto (avg)</th>
-                    <th>L3 Coral Auto (avg)</th>
-                    <th>L4 Coral Auto (avg)</th>
-                    <th>Barge Algae Auto (avg)</th>
-                    <th>Processor Algae Auto (avg)</th>
-                    <th>Auto Fouls (avg)</th>
-                    <th>L1 Coral Teleop (avg)</th>
-                    <th>L2 Coral Teleop (avg)</th>
-                    <th>L3 Coral Teleop (avg)</th>
-                    <th>L4 Coral Teleop (avg)</th>
-                    <th>Barge Algae Teleop (avg)</th>
-                    <th>Processor Algae Teleop (avg)</th>
-                    <th>Cage Touches (avg)</th>
-                    <th>Offense Rating (avg)</th>
-                    <th>Defense Rating (avg)</th>
+                    
+                    <!-- Numeric metrics with avg and std dev -->
+                    <th class="metric-group">Timer (avg)</th>
+                    <th class="std-dev">Timer (std)</th>
+                    
+                    <th class="metric-group">L1 Coral Auto (avg)</th>
+                    <th class="std-dev">L1 Coral Auto (std)</th>
+                    
+                    <th class="metric-group">L2 Coral Auto (avg)</th>
+                    <th class="std-dev">L2 Coral Auto (std)</th>
+                    
+                    <th class="metric-group">L3 Coral Auto (avg)</th>
+                    <th class="std-dev">L3 Coral Auto (std)</th>
+                    
+                    <th class="metric-group">L4 Coral Auto (avg)</th>
+                    <th class="std-dev">L4 Coral Auto (std)</th>
+                    
+                    <th class="metric-group">Barge Algae Auto (avg)</th>
+                    <th class="std-dev">Barge Algae Auto (std)</th>
+                    
+                    <th class="metric-group">Processor Algae Auto (avg)</th>
+                    <th class="std-dev">Processor Algae Auto (std)</th>
+                    
+                    <th class="metric-group">Auto Fouls (avg)</th>
+                    <th class="std-dev">Auto Fouls (std)</th>
+                    
+                    <th class="metric-group">L1 Coral Teleop (avg)</th>
+                    <th class="std-dev">L1 Coral Teleop (std)</th>
+                    
+                    <th class="metric-group">L2 Coral Teleop (avg)</th>
+                    <th class="std-dev">L2 Coral Teleop (std)</th>
+                    
+                    <th class="metric-group">L3 Coral Teleop (avg)</th>
+                    <th class="std-dev">L3 Coral Teleop (std)</th>
+                    
+                    <th class="metric-group">L4 Coral Teleop (avg)</th>
+                    <th class="std-dev">L4 Coral Teleop (std)</th>
+                    
+                    <th class="metric-group">Barge Algae Teleop (avg)</th>
+                    <th class="std-dev">Barge Algae Teleop (std)</th>
+                    
+                    <th class="metric-group">Processor Algae Teleop (avg)</th>
+                    <th class="std-dev">Processor Algae Teleop (std)</th>
+                    
+                    <th class="metric-group">Cage Touches (avg)</th>
+                    <th class="std-dev">Cage Touches (std)</th>
+                    
+                    <th class="metric-group">Offense Rating (avg)</th>
+                    <th class="std-dev">Offense Rating (std)</th>
+                    
+                    <th class="metric-group">Defense Rating (avg)</th>
+                    <th class="std-dev">Defense Rating (std)</th>
                 </tr>
             </thead>
             <tbody>
@@ -118,6 +162,7 @@
                 <tr>
                     <td>{{ team['Team Number'] }}</td>
                     <td>{{ team['Entry Count'] }}</td>
+                    
                     <td>{{ team['No Show (%)'] }}</td>
                     <td>{{ team['Moved (%)'] }}</td>
                     <td>{{ team['Dislodged Auto (%)'] }}</td>
@@ -126,26 +171,60 @@
                     <td>{{ team['Tipped/Fell (%)'] }}</td>
                     <td>{{ team['Died (%)'] }}</td>
                     <td>{{ team['Defended (%)'] }}</td>
+                    
                     <td>{{ team['Timer (avg)'] }}</td>
+                    <td>{{ team['Timer (std)'] }}</td>
+                    
                     <td>{{ team['L1 Coral Auto (avg)'] }}</td>
+                    <td>{{ team['L1 Coral Auto (std)'] }}</td>
+                    
                     <td>{{ team['L2 Coral Auto (avg)'] }}</td>
+                    <td>{{ team['L2 Coral Auto (std)'] }}</td>
+                    
                     <td>{{ team['L3 Coral Auto (avg)'] }}</td>
+                    <td>{{ team['L3 Coral Auto (std)'] }}</td>
+                    
                     <td>{{ team['L4 Coral Auto (avg)'] }}</td>
+                    <td>{{ team['L4 Coral Auto (std)'] }}</td>
+                    
                     <td>{{ team['Barge Algae Auto (avg)'] }}</td>
+                    <td>{{ team['Barge Algae Auto (std)'] }}</td>
+                    
                     <td>{{ team['Processor Algae Auto (avg)'] }}</td>
+                    <td>{{ team['Processor Algae Auto (std)'] }}</td>
+                    
                     <td>{{ team['Auto Fouls (avg)'] }}</td>
+                    <td>{{ team['Auto Fouls (std)'] }}</td>
+                    
                     <td>{{ team['L1 Coral Teleop (avg)'] }}</td>
+                    <td>{{ team['L1 Coral Teleop (std)'] }}</td>
+                    
                     <td>{{ team['L2 Coral Teleop (avg)'] }}</td>
+                    <td>{{ team['L2 Coral Teleop (std)'] }}</td>
+                    
                     <td>{{ team['L3 Coral Teleop (avg)'] }}</td>
+                    <td>{{ team['L3 Coral Teleop (std)'] }}</td>
+                    
                     <td>{{ team['L4 Coral Teleop (avg)'] }}</td>
+                    <td>{{ team['L4 Coral Teleop (std)'] }}</td>
+                    
                     <td>{{ team['Barge Algae Teleop (avg)'] }}</td>
+                    <td>{{ team['Barge Algae Teleop (std)'] }}</td>
+                    
                     <td>{{ team['Processor Algae Teleop (avg)'] }}</td>
+                    <td>{{ team['Processor Algae Teleop (std)'] }}</td>
+                    
                     <td>{{ team['Cage Touches (avg)'] }}</td>
+                    <td>{{ team['Cage Touches (std)'] }}</td>
+                    
                     <td>{{ team['Offense Rating (avg)'] }}</td>
+                    <td>{{ team['Offense Rating (std)'] }}</td>
+                    
                     <td>{{ team['Defense Rating (avg)'] }}</td>
+                    <td>{{ team['Defense Rating (std)'] }}</td>
                 </tr>
                 {% else %}
-                <tr><td colspan="28">No team records found.</td></tr>
+                <tr><td colspan="44">No team records found.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

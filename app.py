@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, Response
 import os
 import io
 import csv
+import numpy as np  # Import numpy for standard deviation calculations
 
 app = Flask(__name__)
 
@@ -329,31 +330,48 @@ def api_team_data():
 def custom_graph():
     # Define available metrics with their index and type
     available_metrics = {
-        "Timer": {"index": 8, "type": "numeric"},
-        "L1 Coral Auto": {"index": 9, "type": "numeric"},
-        "L2 Coral Auto": {"index": 10, "type": "numeric"},
-        "L3 Coral Auto": {"index": 11, "type": "numeric"},
-        "L4 Coral Auto": {"index": 12, "type": "numeric"},
-        "Barge Algae Auto": {"index": 13, "type": "numeric"},
-        "Processor Algae Auto": {"index": 14, "type": "numeric"},
-        "Auto Fouls": {"index": 16, "type": "numeric"},
-        "L1 Coral Teleop": {"index": 19, "type": "numeric"},
-        "L2 Coral Teleop": {"index": 20, "type": "numeric"},
-        "L3 Coral Teleop": {"index": 21, "type": "numeric"},
-        "L4 Coral Teleop": {"index": 22, "type": "numeric"},
-        "Barge Algae Teleop": {"index": 23, "type": "numeric"},
-        "Processor Algae Teleop": {"index": 24, "type": "numeric"},
-        "Cage Touches": {"index": 27, "type": "numeric"},
-        "Offense Rating": {"index": 31, "type": "numeric"},
-        "Defense Rating": {"index": 32, "type": "numeric"},
-        "No Show": {"index": 5, "type": "boolean"},
-        "Moved": {"index": 7, "type": "boolean"},
-        "Dislodged Auto": {"index": 15, "type": "boolean"},
-        "Dislodged Teleop": {"index": 17, "type": "boolean"},
-        "Defense/Cross": {"index": 25, "type": "boolean"},
-        "Tipped/Fell": {"index": 26, "type": "boolean"},
-        "Died": {"index": 28, "type": "boolean"},
-        "Defended": {"index": 30, "type": "boolean"}
+        "Timer (avg)": {"index": 8, "type": "numeric"},
+        "Timer (std)": {"index": 8, "type": "std_dev"},
+        "L1 Coral Auto (avg)": {"index": 9, "type": "numeric"},
+        "L1 Coral Auto (std)": {"index": 9, "type": "std_dev"},
+        "L2 Coral Auto (avg)": {"index": 10, "type": "numeric"},
+        "L2 Coral Auto (std)": {"index": 10, "type": "std_dev"},
+        "L3 Coral Auto (avg)": {"index": 11, "type": "numeric"},
+        "L3 Coral Auto (std)": {"index": 11, "type": "std_dev"},
+        "L4 Coral Auto (avg)": {"index": 12, "type": "numeric"},
+        "L4 Coral Auto (std)": {"index": 12, "type": "std_dev"},
+        "Barge Algae Auto (avg)": {"index": 13, "type": "numeric"},
+        "Barge Algae Auto (std)": {"index": 13, "type": "std_dev"},
+        "Processor Algae Auto (avg)": {"index": 14, "type": "numeric"},
+        "Processor Algae Auto (std)": {"index": 14, "type": "std_dev"},
+        "Auto Fouls (avg)": {"index": 16, "type": "numeric"},
+        "Auto Fouls (std)": {"index": 16, "type": "std_dev"},
+        "L1 Coral Teleop (avg)": {"index": 19, "type": "numeric"},
+        "L1 Coral Teleop (std)": {"index": 19, "type": "std_dev"},
+        "L2 Coral Teleop (avg)": {"index": 20, "type": "numeric"},
+        "L2 Coral Teleop (std)": {"index": 20, "type": "std_dev"},
+        "L3 Coral Teleop (avg)": {"index": 21, "type": "numeric"},
+        "L3 Coral Teleop (std)": {"index": 21, "type": "std_dev"},
+        "L4 Coral Teleop (avg)": {"index": 22, "type": "numeric"},
+        "L4 Coral Teleop (std)": {"index": 22, "type": "std_dev"},
+        "Barge Algae Teleop (avg)": {"index": 23, "type": "numeric"},
+        "Barge Algae Teleop (std)": {"index": 23, "type": "std_dev"},
+        "Processor Algae Teleop (avg)": {"index": 24, "type": "numeric"},
+        "Processor Algae Teleop (std)": {"index": 24, "type": "std_dev"},
+        "Cage Touches (avg)": {"index": 27, "type": "numeric"},
+        "Cage Touches (std)": {"index": 27, "type": "std_dev"},
+        "Offense Rating (avg)": {"index": 31, "type": "numeric"},
+        "Offense Rating (std)": {"index": 31, "type": "std_dev"},
+        "Defense Rating (avg)": {"index": 32, "type": "numeric"},
+        "Defense Rating (std)": {"index": 32, "type": "std_dev"},
+        "No Show (%)": {"index": 5, "type": "boolean"},
+        "Moved (%)": {"index": 7, "type": "boolean"},
+        "Dislodged Auto (%)": {"index": 15, "type": "boolean"},
+        "Dislodged Teleop (%)": {"index": 17, "type": "boolean"},
+        "Defense/Cross (%)": {"index": 25, "type": "boolean"},
+        "Tipped/Fell (%)": {"index": 26, "type": "boolean"},
+        "Died (%)": {"index": 28, "type": "boolean"},
+        "Defended (%)": {"index": 30, "type": "boolean"}
     }
     
     x_metric = request.args.get("x_metric")
@@ -373,12 +391,11 @@ def custom_graph():
                         team = processed[3]
                         team_data.setdefault(team, []).append(processed)
         
-        # Compute averages per team for selected metrics, excluding ambiguous entries
+        # Compute averages and std devs per team for selected metrics
         for team, records in team_data.items():
-            x_sum = 0.0
-            x_count = 0
-            y_sum = 0.0
-            y_count = 0
+            # Extract values based on metric type (avg or std dev)
+            x_vals = []
+            y_vals = []
             x_idx = available_metrics[x_metric]["index"]
             y_idx = available_metrics[y_metric]["index"]
             x_type = available_metrics[x_metric]["type"]
@@ -387,45 +404,59 @@ def custom_graph():
             for rec in records:
                 # Process x metric
                 val_x_raw = rec[x_idx] if len(rec) > x_idx else ""
-                if "●" in val_x_raw:
-                    # Skip ambiguous entry
-                    pass
-                else:
-                    if x_type == "numeric":
+                if "●" not in val_x_raw:  # Skip ambiguous entries
+                    if x_type in ["numeric", "std_dev"]:
                         try:
                             num = float(val_x_raw)
-                            x_sum += num
-                            x_count += 1
+                            x_vals.append(num)
                         except:
                             pass
-                    else:
+                    else:  # boolean type
                         val_x = val_x_raw.strip().lower()
                         v = 1 if val_x == "true" else 0
-                        x_sum += v
-                        x_count += 1
+                        x_vals.append(v)
 
                 # Process y metric
                 val_y_raw = rec[y_idx] if len(rec) > y_idx else ""
-                if "●" in val_y_raw:
-                    pass
-                else:
-                    if y_type == "numeric":
+                if "●" not in val_y_raw:  # Skip ambiguous entries
+                    if y_type in ["numeric", "std_dev"]:
                         try:
                             num = float(val_y_raw)
-                            y_sum += num
-                            y_count += 1
+                            y_vals.append(num)
                         except:
                             pass
-                    else:
+                    else:  # boolean type
                         val_y = val_y_raw.strip().lower()
                         v = 1 if val_y == "true" else 0
-                        y_sum += v
-                        y_count += 1
+                        y_vals.append(v)
 
-            if x_count > 0 and y_count > 0:
-                avg_x = x_sum / x_count
-                avg_y = y_sum / y_count
-                data_points.append({"team": team, "x": avg_x, "y": avg_y})
+            # Calculate the final values based on metric type
+            if x_vals and y_vals:
+                if x_type == "numeric":
+                    avg_x = sum(x_vals) / len(x_vals)
+                    final_x = avg_x
+                elif x_type == "std_dev":
+                    if len(x_vals) > 1:
+                        std_x = np.std(x_vals, ddof=1)
+                        final_x = std_x
+                    else:
+                        continue  # Skip if not enough data for std dev
+                else:  # boolean percentage
+                    final_x = sum(x_vals) * 100.0 / len(x_vals)
+                
+                if y_type == "numeric":
+                    avg_y = sum(y_vals) / len(y_vals)
+                    final_y = avg_y
+                elif y_type == "std_dev":
+                    if len(y_vals) > 1:
+                        std_y = np.std(y_vals, ddof=1)
+                        final_y = std_y
+                    else:
+                        continue  # Skip if not enough data for std dev
+                else:  # boolean percentage
+                    final_y = sum(y_vals) * 100.0 / len(y_vals)
+                
+                data_points.append({"team": team, "x": final_x, "y": final_y})
 
     return render_template("custom_graph.html", available_metrics=available_metrics, data_points=data_points, selected_x=x_metric, selected_y=y_metric)
 
