@@ -94,6 +94,12 @@
                     <th>Team Number</th>
                     <th>Entry Count</th>
                     
+                    <!-- EPA metrics -->
+                    <th class="metric-group">EPA Current</th>
+                    <th class="metric-group">EPA Recent</th>
+                    <th class="metric-group">EPA Mean</th>
+                    <th class="metric-group">EPA Max</th>
+                    
                     <!-- Boolean metrics -->
                     <th>No Show (%)</th>
                     <th>Moved (%)</th>
@@ -163,6 +169,12 @@
                     <td>{{ team['Team Number'] }}</td>
                     <td>{{ team['Entry Count'] }}</td>
                     
+                    <!-- EPA metrics -->
+                    <td>{{ team['EPA Current'] }}</td>
+                    <td>{{ team['EPA Recent'] }}</td>
+                    <td>{{ team['EPA Mean'] }}</td>
+                    <td>{{ team['EPA Max'] }}</td>
+                    
                     <td>{{ team['No Show (%)'] }}</td>
                     <td>{{ team['Moved (%)'] }}</td>
                     <td>{{ team['Dislodged Auto (%)'] }}</td>
@@ -224,7 +236,7 @@
                     <td>{{ team['Defense Rating (std)'] }}</td>
                 </tr>
                 {% else %}
-                <tr><td colspan="44">No team records found.</td></tr>
+                <tr><td colspan="48">No team records found.</td></tr>
                 {% endfor %}
             </tbody>
         </table>

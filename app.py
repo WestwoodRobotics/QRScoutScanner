@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, Response
 import os
 import io
 import csv
+import requests  # Add this import for API calls
 
 app = Flask(__name__)
 
@@ -270,6 +271,30 @@ def team_list():
                 team_data_entry[f"{metric} (avg)"] = "N/A"
                 team_data_entry[f"{metric} (std)"] = "N/A"
         
+        # Fetch EPA metrics from Statbotics API
+        try:
+            response = requests.get(f"https://api.statbotics.io/v3/team/{team}")
+            if response.status_code == 200:
+                epa_data = response.json().get("norm_epa", {})
+                # Add EPA metrics to team data
+                team_data_entry["EPA Current"] = epa_data.get("current", "N/A") 
+                team_data_entry["EPA Recent"] = epa_data.get("recent", "N/A")
+                team_data_entry["EPA Mean"] = epa_data.get("mean", "N/A")
+                team_data_entry["EPA Max"] = epa_data.get("max", "N/A")
+            else:
+                # Handle API errors by setting default values
+                team_data_entry["EPA Current"] = "N/A"
+                team_data_entry["EPA Recent"] = "N/A"
+                team_data_entry["EPA Mean"] = "N/A"
+                team_data_entry["EPA Max"] = "N/A"
+        except Exception as e:
+            print(f"Error fetching EPA data for team {team}: {e}")
+            # Set default values in case of exception
+            team_data_entry["EPA Current"] = "N/A"
+            team_data_entry["EPA Recent"] = "N/A"
+            team_data_entry["EPA Mean"] = "N/A"
+            team_data_entry["EPA Max"] = "N/A"
+        
         teams.append(team_data_entry)
     
     return render_template("team_list.html", title="Team List", teams=teams)
@@ -304,7 +329,11 @@ def team_graph():
         "Processor Algae Teleop": 24,
         "Cage Touches": 27,
         "Offense Rating": 31,
-        "Defense Rating": 32
+        "Defense Rating": 32,
+        "EPA Current": -1,  # Special indicator for API data
+        "EPA Recent": -1,
+        "EPA Mean": -1,
+        "EPA Max": -1
     }
     boolean_metrics = {
         "No Show": 5,
@@ -356,6 +385,27 @@ def api_team_data():
         "Defended": 30
     }}
     if os.path.exists(entries_file) and team and metric:
+        if metric in ["EPA Current", "EPA Recent", "EPA Mean", "EPA Max"]:
+            try:
+                response = requests.get(f"https://api.statbotics.io/v3/team/{team}")
+                if response.status_code == 200:
+                    epa_data = response.json().get("norm_epa", {})
+                    epa_key = metric.split(" ")[1].lower()  # Convert "EPA Current" to "current"
+                    epa_value = epa_data.get(epa_key, None)
+                    
+                    # Format response similar to other metrics but with match number as 1
+                    if epa_value is not None:
+                        return jsonify({
+                            "matches": ["1"],  # Use 1 as a placeholder match number
+                            "values": [epa_value],
+                            "isNumeric": True
+                        })
+                    else:
+                        return jsonify({"error": f"EPA data not available for team {team}"}), 404
+                else:
+                    return jsonify({"error": f"Failed to fetch EPA data for team {team}"}), response.status_code
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
         with open(entries_file, "r") as f:
             records = []
             for line in f:
@@ -442,7 +492,11 @@ def custom_graph():
         "Defense/Cross (%)": {"index": 25, "type": "boolean"},
         "Tipped/Fell (%)": {"index": 26, "type": "boolean"},
         "Died (%)": {"index": 28, "type": "boolean"},
-        "Defended (%)": {"index": 30, "type": "boolean"}
+        "Defended (%)": {"index": 30, "type": "boolean"},
+        "EPA Current": {"index": -1, "type": "epa"},
+        "EPA Recent": {"index": -1, "type": "epa"},
+        "EPA Mean": {"index": -1, "type": "epa"},
+        "EPA Max": {"index": -1, "type": "epa"}
     }
     
     x_metric = request.args.get("x_metric")
