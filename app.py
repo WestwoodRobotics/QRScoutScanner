@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, jsonify, Response
 import os
 import io
 import csv
-import numpy as np  # Import numpy for standard deviation calculations
 
 app = Flask(__name__)
 
@@ -91,6 +90,24 @@ def process_record(fields):
             new_record[idx] = translate_field(idx, new_record[idx])
     return new_record
 
+# Add custom standard deviation function
+def calculate_std_dev(values):
+    """Calculate standard deviation without using external libraries."""
+    if len(values) <= 1:
+        return None  # Need at least 2 values for std dev
+    
+    # Calculate the mean
+    mean = sum(values) / len(values)
+    
+    # Calculate sum of squared differences
+    squared_diff_sum = sum((x - mean) ** 2 for x in values)
+    
+    # Calculate variance (with Bessel's correction for sample std dev)
+    variance = squared_diff_sum / (len(values) - 1)
+    
+    # Return standard deviation
+    return variance ** 0.5
+
 @app.route("/")
 def hello_world():
     return render_template("index.html", title="Hello")
@@ -171,37 +188,91 @@ def team_list():
                 if line:
                     fields = [field.strip() for field in line.split('\t')]
                     processed = process_record(fields)
-                    team = processed[3]  # Team Number at index 3
-                    if team not in team_data:
-                        team_data[team] = {"count": 0, "bool_sum": {}, "num_sum": {}}
-                    team_data[team]["count"] += 1
-                    rec = processed
-                    # Boolean fields
-                    for idx, key in [(5, "No Show"), (7, "Moved"), (15, "Dislodged Auto"), (17, "Dislodged Teleop"), (25, "Defense/Cross"), (26, "Tipped/Fell"), (28, "Died"), (30, "Defended")]:
-                        val = rec[idx].replace(" ●", "").strip().lower()
-                        team_data[team]["bool_sum"].setdefault(key, 0)
-                        if val == "true":
-                            team_data[team]["bool_sum"][key] += 1
-                    # Numeric fields
-                    for idx, key in [(8, "Timer"), (9, "L1 Coral Auto"), (10, "L2 Coral Auto"), (11, "L3 Coral Auto"), (12, "L4 Coral Auto"), (13, "Barge Algae Auto"), (14, "Processor Algae Auto"), (16, "Auto Fouls"), (19, "L1 Coral Teleop"), (20, "L2 Coral Teleop"), (21, "L3 Coral Teleop"), (22, "L4 Coral Teleop"), (23, "Barge Algae Teleop"), (24, "Processor Algae Teleop"), (27, "Cage Touches"), (31, "Offense Rating"), (32, "Defense Rating")]:
-                        try:
-                            num = float(rec[idx].replace(" ●", ""))
-                        except:
-                            num = 0
-                        team_data[team]["num_sum"].setdefault(key, 0)
-                        team_data[team]["num_sum"][key] += num
-    team_stats = []
-    for team, data in team_data.items():
-        count = data["count"]
-        row = {"Team Number": team, "Entry Count": count}
-        for key in ["No Show", "Moved", "Dislodged Auto", "Dislodged Teleop", "Defense/Cross", "Tipped/Fell", "Died", "Defended"]:
-            perc = (data["bool_sum"].get(key, 0) / count) * 100
-            row[key + " (%)"] = f"{perc:.1f}%"
-        for key in ["Timer", "L1 Coral Auto", "L2 Coral Auto", "L3 Coral Auto", "L4 Coral Auto", "Barge Algae Auto", "Processor Algae Auto", "Auto Fouls", "L1 Coral Teleop", "L2 Coral Teleop", "L3 Coral Teleop", "L4 Coral Teleop", "Barge Algae Teleop", "Processor Algae Teleop", "Cage Touches", "Offense Rating", "Defense Rating"]:
-            avg = data["num_sum"].get(key, 0) / count
-            row[key + " (avg)"] = f"{avg:.1f}"
-        team_stats.append(row)
-    return render_template("team_list.html", title="Team List", teams=team_stats)
+                    team = processed[3]
+                    team_data.setdefault(team, []).append(processed)
+    
+    teams = []
+    for team, records in sorted(team_data.items(), key=lambda x: x[0]):
+        team_data_entry = {"Team Number": team, "Entry Count": len(records)}
+        
+        # Process boolean metrics
+        bool_metrics = {
+            "No Show": 5,
+            "Moved": 7,
+            "Dislodged Auto": 15,
+            "Dislodged Teleop": 17,
+            "Defense/Cross": 25,
+            "Tipped/Fell": 26,
+            "Died": 28,
+            "Defended": 30
+        }
+        
+        # Process numeric metrics with avg and std dev
+        numeric_metrics = {
+            "Timer": 8,
+            "L1 Coral Auto": 9,
+            "L2 Coral Auto": 10,
+            "L3 Coral Auto": 11,
+            "L4 Coral Auto": 12,
+            "Barge Algae Auto": 13,
+            "Processor Algae Auto": 14,
+            "Auto Fouls": 16,
+            "L1 Coral Teleop": 19,
+            "L2 Coral Teleop": 20,
+            "L3 Coral Teleop": 21,
+            "L4 Coral Teleop": 22,
+            "Barge Algae Teleop": 23,
+            "Processor Algae Teleop": 24,
+            "Cage Touches": 27,
+            "Offense Rating": 31,
+            "Defense Rating": 32
+        }
+        
+        for metric, idx in bool_metrics.items():
+            valid_entries = []
+            for rec in records:
+                val = rec[idx] if len(rec) > idx else ""
+                if not "●" in val:  # Skip ambiguous entries
+                    val = val.strip().lower()
+                    v = 1 if val == "true" else 0
+                    valid_entries.append(v)
+            
+            if valid_entries:
+                percentage = sum(valid_entries) * 100.0 / len(valid_entries)
+                team_data_entry[f"{metric} (%)"] = f"{percentage:.1f}%"
+            else:
+                team_data_entry[f"{metric} (%)"] = "N/A"
+            
+            # No need for std dev on boolean percentages
+        
+        for metric, idx in numeric_metrics.items():
+            valid_entries = []
+            for rec in records:
+                val = rec[idx] if len(rec) > idx else ""
+                if not "●" in val:  # Skip ambiguous entries
+                    try:
+                        num = float(val)
+                        valid_entries.append(num)
+                    except:
+                        pass  # Skip non-numeric entries
+            
+            if valid_entries:
+                avg = sum(valid_entries) / len(valid_entries)
+                team_data_entry[f"{metric} (avg)"] = f"{avg:.2f}"
+                
+                # Calculate standard deviation for valid entries using our custom function
+                if len(valid_entries) > 1:  # Need at least 2 entries for std dev
+                    std_dev = calculate_std_dev(valid_entries)
+                    team_data_entry[f"{metric} (std)"] = f"{std_dev:.2f}"
+                else:
+                    team_data_entry[f"{metric} (std)"] = "N/A"
+            else:
+                team_data_entry[f"{metric} (avg)"] = "N/A"
+                team_data_entry[f"{metric} (std)"] = "N/A"
+        
+        teams.append(team_data_entry)
+    
+    return render_template("team_list.html", title="Team List", teams=teams)
 
 @app.route("/team-graph")
 def team_graph():
@@ -437,7 +508,7 @@ def custom_graph():
                     final_x = avg_x
                 elif x_type == "std_dev":
                     if len(x_vals) > 1:
-                        std_x = np.std(x_vals, ddof=1)
+                        std_x = calculate_std_dev(x_vals)
                         final_x = std_x
                     else:
                         continue  # Skip if not enough data for std dev
@@ -449,7 +520,7 @@ def custom_graph():
                     final_y = avg_y
                 elif y_type == "std_dev":
                     if len(y_vals) > 1:
-                        std_y = np.std(y_vals, ddof=1)
+                        std_y = calculate_std_dev(y_vals)
                         final_y = std_y
                     else:
                         continue  # Skip if not enough data for std dev
